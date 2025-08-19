@@ -1,14 +1,9 @@
 const db = require('../../db');
 const bcrypt = require('bcrypt');
 
-function getWorkerDetailsDAO() {
-    return "veena";
-}
-
-
 function loginWorkerDAO(phone, password) {
   return new Promise((resolve, reject) => {
-    const sql = `SELECT * FROM register_people WHERE Phone = ?`;
+    const sql = `SELECT * FROM register_people WHERE phone = ?`;
 
     db.query(sql, [phone], async (err, results) => {
       if (err) return reject(err);
@@ -20,7 +15,7 @@ function loginWorkerDAO(phone, password) {
       }
 
       const user = results[0];
-      const isMatch = await bcrypt.compare(password, user.Password);
+      const isMatch = await bcrypt.compare(password, user.password);
 
       if (!isMatch) {
         const error = new Error("Invalid credentials");
@@ -33,37 +28,74 @@ function loginWorkerDAO(phone, password) {
   });
 }
 
-
-
-
-
 function postWorkerDetailsDAO(workerData) {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const { name, state, district, mandal, village, phone, skill, password } = workerData;
+  return new Promise(async (resolve, reject) => {
+    try {
+      const { name, state, district, mandal, village, phone, skill, password } = workerData;
 
-            // hash password before saving
-            const hashedPassword = await bcrypt.hash(password, 10);
+      // hash password before saving
+      const hashedPassword = await bcrypt.hash(password, 10);
 
-            const sql = `
-                INSERT INTO register_people (Name, State, District, Mandal, Village, Phone, Skill, Password)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            `;
+      const sql = `
+        INSERT INTO register_people (name, state, district, mandal, village, phone, skill, password)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `;
 
-            db.query(
-                sql,
-                [name, state, district, mandal, village, phone, skill, hashedPassword],
-                (err, result) => {
-                    if (err) {
-                        return reject(err);
-                    }
-                    resolve(result.insertId);
-                }
-            );
-        } catch (error) {
-            reject(error);
+      db.query(
+        sql,
+        [name, state, district, mandal, village, phone, skill, hashedPassword],
+        (err, result) => {
+          if (err) {
+            return reject(err);
+          }
+          resolve(result.insertId);
         }
-    });
+      );
+    } catch (error) {
+      reject(error);
+    }
+  });
 }
 
-module.exports = { getWorkerDetailsDAO, postWorkerDetailsDAO ,loginWorkerDAO};
+function getWorkerByIdDAO(id) {
+  return new Promise((resolve, reject) => {
+    const sql = `SELECT id, name, state, district, mandal, village, phone, skill FROM register_people WHERE id = ?`;
+    db.query(sql, [id], (err, results) => {
+      if (err) return reject(err);
+      resolve(results);
+    });
+  });
+}
+
+function updateWorkerDAO(id, workerData) {
+  return new Promise((resolve, reject) => {
+    const { name, state, district, mandal, village, phone, skill } = workerData;
+    const sql = `
+      UPDATE register_people 
+      SET name=?, state=?, district=?, mandal=?, village=?, phone=?, skill=? 
+      WHERE id=?
+    `;
+    db.query(sql, [name, state, district, mandal, village, phone, skill, id], (err, result) => {
+      if (err) return reject(err);
+      resolve(result);
+    });
+  });
+}
+
+function deleteWorkerDAO(id) {
+  return new Promise((resolve, reject) => {
+    const sql = `DELETE FROM register_people WHERE id=?`;
+    db.query(sql, [id], (err, result) => {
+      if (err) return reject(err);
+      resolve(result);
+    });
+  });
+}
+
+module.exports = {  
+  getWorkerByIdDAO, 
+  updateWorkerDAO, 
+  deleteWorkerDAO,  
+  postWorkerDetailsDAO,
+  loginWorkerDAO
+};

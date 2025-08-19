@@ -1,11 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const searchService = require("../services/searchService");
-
+ 
 router.get("/getStates", async (req, res) => {
   try {
     const states = await searchService.getStatesService();
     res.json(states);
+    console.log(states)
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

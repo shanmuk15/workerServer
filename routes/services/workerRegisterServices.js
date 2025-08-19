@@ -1,7 +1,10 @@
 const { 
   getWorkerDetailsDAO, 
   postWorkerDetailsDAO, 
-  loginWorkerDAO 
+  loginWorkerDAO,
+  getWorkerByIdDAO,
+  updateWorkerDAO,
+  deleteWorkerDAO
 } = require('../dao/workerRegisterDao');
 
 const jwt = require('jsonwebtoken');
@@ -10,33 +13,38 @@ function getWorkerService() {
   return getWorkerDetailsDAO();
 }
 
+function getWorkerByIdService(id) {
+  return getWorkerByIdDAO(id);
+}
+
+function updateWorkerService(id, workerData) {
+  return updateWorkerDAO(id, workerData);
+}
+
+function deleteWorkerService(id) {
+  return deleteWorkerDAO(id);
+}
+
 async function postWorkerDetailService(workerData) {
-  // future లో validation / business logic ఇక్కడ పెట్టవచ్చు
   return await postWorkerDetailsDAO(workerData);
 }
 
 async function loginWorkerService(phone, password) {
   const user = await loginWorkerDAO(phone, password);
-
-  // DAO already throws error if not found / invalid password
-  const payload = {
-    id: user.id,       // DB లో ఉన్న user primary key
-    phone: user.Phone  // DB లోని Phone column
-  };
-
+  const payload = { id: user.id, phone: user.Phone };
   const token = jwt.sign(payload, "myToken", { expiresIn: "1h" });
 
-  // sensitive info remove
   delete user.Password;
-
-  // attach token
   user.token = token;
 
   return user;
 }
 
 module.exports = { 
-  getWorkerService, 
+ 
   postWorkerDetailService,
-  loginWorkerService
+  loginWorkerService,
+  getWorkerByIdService,
+  updateWorkerService,
+  deleteWorkerService
 };

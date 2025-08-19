@@ -1,5 +1,4 @@
 const searchDAO = require("../dao/searchDAO");
-
 async function getStatesService() {
   return await searchDAO.getStates();
 }
